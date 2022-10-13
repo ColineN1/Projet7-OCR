@@ -5,8 +5,11 @@ require('dotenv').config()
 const path = require('path');
 const express = require('express');
 const app = express();
-const postRoutes = require('./routes/sauce');
+const postRoutes = require('./routes/post');
 const userRoutes = require('./routes/user');
+
+// Utilisation d'express - récupere les infos de type json pour les envoyer
+app.use(express.json());
 
 //erreur CORS 
 app.use((req, res, next) => {
@@ -16,14 +19,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// Utilisation d'express - récupere les infos de type json pour les envoyer
-app.use(express.json());
-
 // Route images
 app.use('/images', express.static(path.join(__dirname, 'images')));
-// Routes Utilisateur & Sauces
-app.use('/api/posts', postRoutes);
-app.use('/api/auth', userRoutes);
+// Routes Utilisateur & post
+app.use('/groupomania/post', postRoutes);
+app.use('/groupomania/auth', userRoutes);
 
 // Utilisation de MongoDB
 const mongoose = require('mongoose');

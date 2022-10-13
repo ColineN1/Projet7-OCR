@@ -6,9 +6,9 @@ const auth = require('../middleware/auth');
 const multer = require('../middleware/multer-config');
 
 //on l'envoi vers controller sauce.js
-const postCtrl = require('../controllers/sauce');
+const postCtrl = require('../controllers/post');
 
-router.get('/', auth, postCtrl.getAllPosts);
+router.get('/', auth, postCtrl.getAllPost);
 router.post('/', auth, multer, postCtrl.createPost);
 router.get('/:id', auth, postCtrl.getOnePost);
 router.put('/:id', auth, multer, postCtrl.modifyPost);

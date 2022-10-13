@@ -10,6 +10,8 @@ exports.signup = (req, res, next) => {
     bcrypt.hash(req.body.password, 10)
         .then(hash => {
             const user = new User({
+                firstName: req.body.firstName,
+                lastName: req.body.lastName,
                 email: req.body.email,
                 password: hash
             });
@@ -42,12 +44,7 @@ exports.login = (req, res, next) => {
                     }
                     res.status(200).json({
                         userId: user._id,
-                        //Dans le code ci-dessus :
-                        //     Nous utilisons la fonction sign de jsonwebtoken pour chiffrer un nouveau token.
-                        //     Ce token contient l'ID de l'utilisateur en tant que payload (les données encodées dans le token).
-                        //     Nous utilisons une chaîne secrète de développement temporaire RANDOM_SECRET_KEY pour crypter notre token.
-                        //     Nous définissons la durée de validité du token à 24 heures. L'utilisateur devra donc se reconnecter au bout de 24 heures.
-                        //     Nous renvoyons le token au front-end avec notre réponse.
+                        admin: user.admin,
                         token: jwt.sign(
                             { userId: user._id },
                             process.env.JWT_TOKEN,

@@ -1,0 +1,1 @@
+<!-- Mettre un message pour indiquer qu'on est connecté en tant qu'admin -->

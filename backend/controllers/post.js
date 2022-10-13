@@ -25,9 +25,7 @@ exports.createPost = (req, res) => {
         userId: req.auth.userId,
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
         likes: 0,
-        dislikes: 0,
         usersLiked: [],
-        usersDisliked: []
     });
 
     post.save()
@@ -63,7 +61,7 @@ exports.modifyPost = (req, res) => {
 
     Post.findOne({ _id: req.params.id })
         .then((post) => {
-            if (post.userId != req.auth.userId) {
+            if (post.userId != req.auth.userId || req.auth.isAdmin) {
                 res.status(401).json({ message: 'Non autorisé' });
             } 
             else {
@@ -83,7 +81,7 @@ exports.modifyPost = (req, res) => {
 exports.deletePost = (req, res) => {
     Post.findOne({ _id: req.params.id })
         .then(post => {
-            if (post.userId != req.auth.userId) { //Seul l'utilisateur qui a créé le peut la supprimer + ajout admin ? 
+            if (post.userId != req.auth.userId || req.auth.isAdmin) { //Seul l'utilisateur qui a créé le peut la supprimer + ajout admin ? 
                 res.status(401).json({ message: 'Non autorisé' });
             } else {
                 //Suppression du post
@@ -117,21 +115,9 @@ exports.likePost = (req, res) => {
             const userId = req.auth.userId
             // Option like +1
             const likeOption = req.body.like
-            if(likeOption === 1 && !idIsPresent(userId, post.usersLiked) && !idIsPresent(userId, post.usersDisliked)){
+            if(likeOption === 1 && !idIsPresent(userId, post.usersLiked)){
                 Post.updateOne({_id:req.params.id}, {$inc:{likes: 1}, $push: {usersLiked:userId}})
                     .then(() =>{ res.status(200).json({message: "Vouz aimez ce post!"})})
-                    .catch(error =>{ res.status(400).json({error: error});})
-            }
-            // Option Dislike -1
-            else if (likeOption === -1 && !idIsPresent(userId, post.usersDisliked) && !idIsPresent(userId, post.usersLiked)) {
-                Post.updateOne({_id:req.params.id}, {$inc:{dislikes: 1}, $push: {usersDisliked:userId}})
-                    .then(() =>{ res.status(200).json({message: "Vouz n'aimez pas ce poste!"})})
-                    .catch(error =>{ res.status(400).json({error: error});})
-            }
-            // Option annuler le dislike
-            else if (likeOption === 0 && idIsPresent(userId, post.usersDisliked)) {
-                Post.updateOne({_id:req.params.id}, {$inc:{dislikes: -1}, $pull: {usersDisliked:userId}})
-                    .then(() =>{ res.status(200).json({message: "Vouz avez annulé votre dislike!"})})
                     .catch(error =>{ res.status(400).json({error: error});})
             }
             // Option annuler le like

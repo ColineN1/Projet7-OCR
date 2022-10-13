@@ -3,8 +3,11 @@ const mongoose = require('mongoose');
 const uniqueValidator = require('mongoose-unique-validator');
 //unique = true => on peut s'inscrire 1 seule fois avec le user
 const userSchema = mongoose.Schema({
+  firstName: {type: String, required: true, unique: true},
+  lastName: {type: String, required: true, unique: true},
   email: { type: String, required: true, unique: true },
-  password: { type: String, required: true }
+  password: { type: String, required: true }, 
+  admin: {type: Boolean, default: false}
 });
 //unique = true => on peut s'inscrire 1 seule fois avec le user 
 userSchema.plugin(uniqueValidator);
