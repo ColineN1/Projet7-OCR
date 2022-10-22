@@ -1,31 +1,61 @@
 <template>
     <div class="container">
-        <HeaderComponent :isConnected="isConnected" />
-        <main>
-            <SignupForm />
-        </main>
+        <div class="register">
+            <div class="connection">
+                <h1>Créer un compte</h1>
+                <form class="sign-in-form">
+                    <div class="form-group">
+                        <label>Prénom</label>
+                        <input type="text" name="firstName" v-model="firstName" required placeholder="Camille">
+                        <label>Nom</label>
+                        <input type="text" name="lastName" v-model="lastName" required placeholder="Martin">
+                    </div>
+                    <div class="form-group">
+                        <label>Adresse e-mail</label>
+                        <input type="email" name="email" v-model="email" required placeholder="nom@groupomania.fr">
+                        <label>Mot de passe</label>
+                        <input type="password" name="password" v-model="password" required placeholder="****">
+                    </div>
+                    <button type="button" @click="signup()">Inscription</button>
+                </form>
+                <p>Déjà membre ? <br />
+                    <router-link to="/">Connectez-vous !</router-link>
+                </p>
+            </div>
+        </div>
     </div>
 </template>
 
 <script>
-import HeaderComponent from '../components/HeaderComponent.vue'
-import SignupForm from '../components/SignupForm.vue'
-export default
-    {
-        name: "SignUp",
-        components:
-        {
-            HeaderComponent,
-            SignupForm,
+export default {
+    name: "SignUp",
+    data() {
+        return {
+            firstName: "",
+            lastName: "",
+            email: "",
+            password: "",
+        }
+    },
+    methods: {
+        checkInput() {
+            /* regex */
         },
-        data() {
-            return {
-                isConnected: false,
+        signup() {
+            const data =
+            {
+                firstName: this.firstName,
+                lastName: this.lastName,
+                email: this.email,
+                password: this.password,
+                admin: false,
             }
-        },
+            this.$store.dispatch("auth/signup", data)
+        }
     }
+}
 </script>
 
 <style>
-
+/* Style traité dans LoginPage.vue */
 </style>

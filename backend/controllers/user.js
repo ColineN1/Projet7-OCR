@@ -26,11 +26,7 @@ exports.signup = (req, res, next) => {
 
 //  Dans cette fonction login:
 //     Nous utilisons notre modèle Mongoose pour vérifier que l'e-mail entré par l'utilisateur correspond à un utilisateur existant de la base de données :
-//         - Dans le cas contraire, nous renvoyons une erreur 401 Unauthorized.
-//         - Si l'e-mail correspond à un utilisateur existant, nous continuons.
 //     Nous utilisons la fonction compare de bcrypt pour comparer le mot de passe entré par l'utilisateur avec le hash enregistré dans la base de données :
-//         - S'ils ne correspondent pas, nous renvoyons une erreur 401 Unauthorized avec le même message que lorsque l’utilisateur n’a pas été trouvé, afin de ne pas laisser quelqu’un vérifier si une autre personne est inscrite sur notre site.
-//         - S'ils correspondent, les informations d'identification de notre utilisateur sont valides. Dans ce cas, nous renvoyons une réponse 200 contenant l'ID utilisateur et un token. Ce token est une chaîne générique pour l'instant.
 exports.login = (req, res, next) => {
     User.findOne({ email: req.body.email })
         .then(user => {
