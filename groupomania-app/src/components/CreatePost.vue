@@ -4,8 +4,8 @@
     <h2>Créer une publication</h2>
     <div class="createForm">
       <form id="data">
-        <textarea wrap="soft" rows="5" name="description" v-model="description"
-          placeholder="Aujourd'hui ... Ecrivez votre message ici !"></textarea>
+        <textarea wrap="soft" rows="5" maxlength="2000" name="description" v-model="description"
+          placeholder="Aujourd'hui ... Ecrivez votre message ici (2000 caractères maximum) !"></textarea>
         <label for="file"><i class="fas fa-file-image"></i> Ajouter une image</label>
         <input type="file" class="image" ref="file" id="file" name="file" accept="image/*" @change="addImg()"/>
         <div v-if="imagePreview">
@@ -18,6 +18,7 @@
 </template>
 
 <script>
+
 export default
   {
     name: 'CreatePost',
@@ -39,7 +40,6 @@ export default
       if (this.file && this.file['type'].split('/')[0] === 'image') 
       {
         this.imagePreview = URL.createObjectURL(this.file);
-        console.log(this.imagePreview);
       }
       else 
       {
@@ -48,32 +48,23 @@ export default
     },
       /*envoyer le post au back */
       createPost() {
-        if (this.description === "" && this.file === "") {
-          alert("Votre publication est vide");
+        if (!this.description || !this.file) {
+          alert("Veuillez définir un texte et une image pour votre article");
         }
         else {
           const data = new FormData();
-          JSON.stringify(data.append("date", this.date));
-          JSON.stringify(data.append("description", this.description));
-          data.append("image", this.file.name[0]);
+          data.append("date", this.date);
+          data.append("description", this.description);
+          data.append("image", this.file);
 
-          const options =
-          {
-            method: 'POST',
-            body: data,
-            headers:
-            {
-              "Content-Type": "application/json",
-              "Authorization": "Bearer " + localStorage.getItem("token"),
-            }
-          };
-          fetch('http://localhost:3000/groupomania/posts', options)
-            .then(res => res.json())
+          this.$store.dispatch("post/createPost", data)
             .then(() => {
-              alert("Votre message a été publié avec succès");
-              document.location.reload();
+              this.description = ""
+              this.date = new Date().toLocaleString()
+              this.imageUrl = ""
+              this.file = ""
+              this.imagePreview = null
             })
-            .catch(error => console.log('error message: ', error))
         }
       },
     }

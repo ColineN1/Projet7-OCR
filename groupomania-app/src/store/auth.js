@@ -11,18 +11,6 @@ export default {
         isLogged(state) {
             return !!state.token
         },
-        getUserId(state) {
-            if (state.user.email) {
-                return state.user.userId
-            }
-            return false
-        },
-        isAdmin(state) {
-            if (state.user.email && state.token && state.user.role) {
-                return true
-            }
-            return false
-        }
     },
     mutations: { // Dès que je souhaites modifier le state
         clearToken(state) {
@@ -32,11 +20,11 @@ export default {
         updateUser(state, user) {
             state.user = user
             localStorage.setItem("user", JSON.stringify(user))
-          },
-          updateToken(state, token) {
+        },
+        updateToken(state, token) {
             state.token = token
             localStorage.setItem("token", token)
-          },
+        },
     },
     actions: { // Tout ce qui est asynchrone
         signup({ commit }, data) {
@@ -45,6 +33,7 @@ export default {
                 .then((response) => {
                     commit('updateUser', response.data.user)
                     commit("updateToken", response.data.token)
+                    alert("Votre compte est crée ! Connectez vous...");
                     router.push({ name: "HomePage" });
                 })
                 .catch(error => {

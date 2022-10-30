@@ -12,7 +12,7 @@
                     </div>
                     <div class="form-group">
                         <label>Adresse e-mail</label>
-                        <input type="email" name="email" v-model="email" required placeholder="nom@groupomania.fr">
+                        <input type="email" name="email" v-model="email" required placeholder="nom@groupomania.com" @change="checkEmail()">
                         <label>Mot de passe</label>
                         <input type="password" name="password" v-model="password" required placeholder="****">
                     </div>
@@ -38,8 +38,13 @@ export default {
         }
     },
     methods: {
-        checkInput() {
-            /* regex */
+        checkEmail() {
+            if (/^[A-Za-z0-9._%+-]+@groupomania\.com$/.test(this.email)) {
+                return
+            } else {
+                alert("Email invalide! Vous devez faire partie de la société Groupomania pour vous connectez avec votre adresse mail professionnelle."); 
+                this.email= "";
+            }
         },
         signup() {
             const data =
@@ -52,7 +57,7 @@ export default {
             }
             this.$store.dispatch("auth/signup", data)
         }
-    }
+    },
 }
 </script>
 

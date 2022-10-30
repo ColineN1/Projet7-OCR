@@ -3,7 +3,7 @@
         <div class="edit_post">
             <p>Modifier le contenu</p>
             <form name="editPost" id="editPost">
-                <textarea type="text" aria-label="contenu" v-model="description"></textarea>
+                <textarea wrap="soft" rows="5" maxlength="2000" name="description" v-model="description"></textarea>
                 <div class="post__image" v-if="imageUrl">
                     <img :src="imageUrl">
                 </div>
@@ -22,7 +22,7 @@
 export default {
     name: "EditPage",
     components: {
-    
+
     },
     data() {
         return {
@@ -31,8 +31,6 @@ export default {
             date: "",
             imageUrl: "",
             file: "",
-            userId: localStorage.getItem('userId'),
-            admin: localStorage.getItem('admin'),
             newImage: "",
             newContent: "",
             imagePreview: null,
@@ -40,12 +38,12 @@ export default {
     },
     created() {
         this.getOnePost(this.postId);
+        console.log("ok");
     },
     beforeUpdate() {
-        if(localStorage.getItem("token") == null)
-        {
+        if (localStorage.getItem("token") == null) {
             this.$router.push("/");
-        } else{
+        } else {
             console.log("ok");
         }
     },
@@ -53,104 +51,69 @@ export default {
     {
         /* get a post using its ID*/
         getOnePost(id) {
-            
             const url = `http://localhost:3000/groupomania/post/${id}`;
             const options = {
                 method: "GET",
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': "Bearer " + localStorage.getItem("token"),
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
             }
             fetch(url, options)
                 .then(res => res.json())
                 .then(singlePostData => {
-                    this.userId = singlePostData.userId;
                     this.date = singlePostData.date;
                     this.description = singlePostData.description;
-                    this.imageUrl = singlePostData.imageUrl;
+                    this.imagePreview = singlePostData.imageUrl;
+                    this.file = singlePostData.imageUrl;
                 })
                 .catch(error => console.log(error));
         },
         /* add file to post */
-        addImg()
-        {
+        addImg() {
             this.file = this.$refs.file.files[0];
-            if (this.file && this.file['type'].split('/')[0] === 'image') 
-            {
+            if (this.file && this.file['type'].split('/')[0] === 'image') {
                 this.imagePreview = URL.createObjectURL(this.file);
+                console.log(this.imagePreview);
             }
-            else 
-            {
+            else {
                 this.$refs.file.value = null;
             }
         },
         /* edit a post*/
-        editPost() 
-        {
-            /* if empty */
-            if (this.description == "" && this.file === "") 
-            {
-                 alert("Votre publication est vide");
+        editPost() {
+            if (!this.description || !this.file) {
+                alert("Veuillez définir un texte et une image pour votre article");
+                console.log("ok", this.description, this.file);
             }
-            /* post with no image */
-            else if (this.file === "")  
-            {
-                const newContent = {
-                    userId: this.userId,
-                    date: this.date,
-                    description: this.description,
-                }
-                console.log(newContent);
-                const options =
-                {
-                    method: 'PUT',
-                    body: JSON.stringify(newContent),
-                    headers:
-                    {
-                        "Content-Type": "application/json",
-                        "Authorization": "Bearer " + localStorage.getItem("token"),
-                    }
-                };
-                fetch(`http://localhost:3000/groupomania/post/${this.postId}`, options)
-                    .then((res => res.json()
-                        .then(res => {
-                            console.log(res);
-                            alert("Votre message a été modifié avec succès");
-                            this.$router.push('/');                            
-                        })
-                        .catch(error => console.log('error', error))))
-           }
-           /* post with image */
-            else 
-            {
+            else {
                 const newPost = new FormData();
-                newPost.append("userId", localStorage.getItem("userId"));
-                newPost.append("date", this.date);
                 newPost.append("description", this.description);
-                newPost.append("imageUrl", this.file);
-                for (const value of newPost.values()) {
-                    console.log(value);
-                }
+                newPost.append("image", this.file);
                 const options =
                 {
                     method: 'PUT',
                     body: newPost,
                     headers:
                     {
-                        "Authorization": "Bearer " + localStorage.getItem("token"),
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
                     }
                 };
+                console.log("ok", this.description, this.file);
+                console.log(newPost);
+                console.log(this.postId);
                 fetch(`http://localhost:3000/groupomania/post/${this.postId}`, options)
                     .then(res => {
-                        console.log(res);
-                        return res.json();
-                    })
-                    .then(resData => {
-                        console.log(resData);
-                        alert("Votre message a été modifié avec succès");
-                        this.$router.push('/HomePage');
-                    })
+                        res.json();
+                        if (res.status === 200) {
+                            alert("Publication modifiée !");
+                            this.$router.push('/');
+                        }
+                        else {
+                            alert("Vous n'avez pas les droits pour modifier cette publication.");
+                            this.$router.push('/');
+                        }
+					})
                     .catch(error => console.log('error message: ', error))
             }
         }

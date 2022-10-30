@@ -6,7 +6,7 @@ const fs = require('fs');
 exports.getAllPost = (req, res) => {
     Post.find().then(
         (posts) => {
-            res.status(200).json(posts);
+            res.status(200).json(posts.slice().reverse());
         }
     ).catch(
         (error) => {
@@ -17,19 +17,17 @@ exports.getAllPost = (req, res) => {
 
 // Créer un post
 exports.createPost = (req, res) => {
-    const postObject = JSON.parse(req.body.post);
-    delete postObject._id;
-    delete postObject._userId;
     const post = new Post({
-        ...postObject,
+        date: req.body.date,
+        description: req.body.description,
         userId: req.auth.userId,
+        author: req.auth.author,
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
         likes: 0,
         usersLiked: [],
     });
-
     post.save()
-        .then(() => { res.status(201).json({ message: 'Post publié !' }) })
+        .then(() => { res.status(201).json(post) })
         .catch(error => { res.status(400).json({ error }) })
 };
 
@@ -53,7 +51,7 @@ exports.getOnePost = (req, res) => {
 //Modifier un post 
 exports.modifyPost = (req, res) => {
     const postObject = req.file ? {
-        ...JSON.parse(req.body.post),
+        ...req.body,
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
     } : { ...req.body };
 
@@ -61,16 +59,18 @@ exports.modifyPost = (req, res) => {
 
     Post.findOne({ _id: req.params.id })
         .then((post) => {
-            if (post.userId != req.auth.userId || req.auth.isAdmin) {
-                res.status(401).json({ message: 'Non autorisé' });
+            
+            if (post.userId === req.auth.userId  || req.auth.admin === true) {
+                if (req.file) {
+                    const filename = post.imageUrl.split('/images/')[1];
+                    fs.unlink(`images/${filename}`, () => {});}
+                    Post.updateOne({ _id: req.params.id }, { ...postObject, _id: req.params.id })
+                        .then(() => res.status(200).json({ message: 'Post modifié!' }))
+                        .catch(error => res.status(401).json({ error }));
             } 
             else {
-                if (req.file) {
-                const filename = post.imageUrl.split('/images/')[1];
-                fs.unlink(`images/${filename}`, () => {});}
-                Post.updateOne({ _id: req.params.id }, { ...postObject, _id: req.params.id })
-                    .then(() => res.status(200).json({ message: 'Post modifié!' }))
-                    .catch(error => res.status(401).json({ error }));
+                res.status(401).json({ message: 'Non autorisé' });
+                
 }})
         .catch((error) => {
             res.status(400).json({  error });
@@ -81,9 +81,8 @@ exports.modifyPost = (req, res) => {
 exports.deletePost = (req, res) => {
     Post.findOne({ _id: req.params.id })
         .then(post => {
-            if (post.userId != req.auth.userId || req.auth.isAdmin) { //Seul l'utilisateur qui a créé le peut la supprimer + ajout admin ? 
-                res.status(401).json({ message: 'Non autorisé' });
-            } else {
+            console.log(req.auth.admin);
+            if (post.userId === req.auth.userId  || req.auth.admin === true) {
                 //Suppression du post
                 const filename = post.imageUrl.split('/images/')[1];
                 fs.unlink(`images/${filename}`, () => {
@@ -91,6 +90,8 @@ exports.deletePost = (req, res) => {
                         .then(() => { res.status(200).json({ message: 'Post supprimé !' }) })
                         .catch(error => res.status(401).json({ error }));
                 });
+            } else {
+                res.status(401).json({ message: 'Non autorisé' });
             }
         })
         .catch(error => {
@@ -121,7 +122,7 @@ exports.likePost = (req, res) => {
                     .catch(error =>{ res.status(400).json({error: error});})
             }
             // Option annuler le like
-            else if (likeOption === 0 && idIsPresent(userId, post.usersLiked)) {
+            else if (likeOption === 1 && idIsPresent(userId, post.usersLiked)) {
                 Post.updateOne({_id:req.params.id}, {$inc:{likes: -1}, $pull: {usersLiked:userId}})
                     .then(() =>{ res.status(200).json({message: "Vouz avez annulé votre like!"})})
                     .catch(error =>{ res.status(400).json({error: error});})

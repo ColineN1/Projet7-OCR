@@ -2,11 +2,11 @@
 	<div class="feeds">
 		<h2>Votre fil d'actualité</h2>
 		<div class="feeds_post">
-			<div v-for="post in posts.slice().reverse()" :key="post.id" class="post">
+			<div v-for="post in posts" :key="post.id" class="post">
 				<div class="post__box">
 					<div class="post__data">
 						<div class="post__user">
-							<p>Le {{ post.date }}, <span class="writer">{{ post.userId}} </span> a dit : </p>
+							<p>Le {{ post.date }}, <span class="writer">{{post.author}} </span> a dit : </p>
 						</div>
 						<p class="post__content">{{ post.description }}</p>
 						<div class="post__image" v-if="post.imageUrl">
@@ -36,92 +36,69 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapActions, mapState } from 'vuex'
+
 export default {
     name: "DisplayPost",
     components: {},
-    data() {
-			return {
-				userId: localStorage.getItem("userId"),
-				admin: localStorage.getItem("admin"),
-				posts: [],
-				user: {},
-			};
-		},
-		methods:
-		{
-			/* récupérer tous les posts à afficher */
-			getAllPosts() {
-				const url = "http://localhost:3000/groupomania/post";
-				const options = {
-					method: "GET",
-					headers: {
-						"Content-Type": "application/json",
-						"Authorization": "Bearer " + localStorage.getItem("token"),
-					}
-				};
-				fetch(url, options)
-					.then(res => res.json())
-					.then(postData => {
-						this.posts = postData;
-					})
-					.catch(error => console.log(error));
-			},
-			deletePost(id) {
-				if (confirm("Voulez vous supprimer cette publication ? ")) {
-					fetch(`http://localhost:3000/groupomania/post/${id}`,
-						{
-							method: "DELETE",
-							headers:
-							{
-								Authorization: `Bearer ${localStorage.getItem("token")}`
-							},
-						})
-						.then((res) => {
-							if (res.status === 200) {
-								alert("Publication supprimée !");
-								this.getAllPosts();
-							}
-							else {
-								console.log(res.json());
-							}
-						})
-						.catch((err) => console.log(err));
-				}
-			},
-			/* like a post*/
-			likePost(id) {
-				const newLike = {
-					like: 1,
-					userId: this.userId,
-					postId: id,
-				}
-				console.log(newLike);
-				const url = `http://localhost:3000/groupomania/post/${id}/like`;
-				const options =
-				{
-					method: 'POST',
-					body: JSON.stringify(newLike),
-					headers:
+	computed: {
+		// que ça soit un state ou un getter, on doit le mettre dans computed
+		...mapState('post', ['posts'])
+	},
+	methods: {
+		...mapActions('post', [
+			'getAllPost'
+		]),
+		deletePost(id) {
+			if (confirm("Voulez vous supprimer cette publication ? ")) {
+				fetch(`http://localhost:3000/groupomania/post/${id}`,
 					{
-						"Content-Type": "application/json",
-						"Authorization": "Bearer " + localStorage.getItem("token"),
-					}
-				};
-				fetch(url, options)
-					.then((res => res.json()
-						.then(res => { console.log(res); this.getAllPosts(); })
-						.catch(error => console.log('error', error))))
-			},
+						method: "DELETE",
+						headers:
+						{
+							Authorization: `Bearer ${localStorage.getItem("token")}`
+						},
+					})
+					.then((res) => {
+						if (res.status === 200) {
+							alert("Publication supprimée !");
+							this.getAllPost();
+						}
+						else {
+							console.log(res.json());
+							alert("Vous n'avez pas les droits pour supprimer cette publication.");
+						}
+					})
+					.catch(error => console.log('error message: ', error));
+			}
 		},
-		mounted() {
-			this.getAllPosts();
+		/* like a post*/
+		likePost(id) {
+			const newLike = {
+				like: 1,
+				postId: id,
+			}
+			console.log(newLike);
+			const url = `http://localhost:3000/groupomania/post/${id}/like`;
+			const options =
+			{
+				method: 'POST',
+				body: JSON.stringify(newLike),
+				headers:
+				{
+					"Content-Type": "application/json",
+					"Authorization": "Bearer " + localStorage.getItem("token"),
+				}
+			};
+			fetch(url, options)
+				.then((res => res.json()
+					.then(res => { console.log(res); this.getAllPost(); alert("Vous likez/dislikez la publication !");})
+					.catch(error => console.log('error message: ', error))))
 		},
-		computed: {
-    ...mapGetters('auth', [
-      'isLogged'
-    ]),
-  },
+	},
+	mounted() {
+		this.getAllPost();
+	},
 };
 </script>
 
