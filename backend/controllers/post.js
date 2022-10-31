@@ -6,7 +6,14 @@ const fs = require('fs');
 exports.getAllPost = (req, res) => {
     Post.find().then(
         (posts) => {
-            res.status(200).json(posts.slice().reverse());
+            res.status(200).json(posts.slice().reverse().map(post => {
+                const { userId, ...data } = post.toObject()
+                const isOwner = userId === req.auth.userId
+                return {
+                    ...data,
+                    canManage: isOwner || req.auth.admin,
+                }
+            }));
         }
     ).catch(
         (error) => {
@@ -20,9 +27,10 @@ exports.createPost = (req, res) => {
     const post = new Post({
         date: req.body.date,
         description: req.body.description,
+        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
         userId: req.auth.userId,
         author: req.auth.author,
-        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
+        canManage: true,
         likes: 0,
         usersLiked: [],
     });

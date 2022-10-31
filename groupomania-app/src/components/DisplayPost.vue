@@ -18,7 +18,7 @@
 								<i class="fas fa-heart"></i>
 							</span>
 						</div>
-						<div class="change">
+						<div class="change" v-if="post.canManage">
 							<div class="modify_post">
 								<router-link :to="{ name: 'onepost', params: {id: post._id }}">
 									<p><i class="fas fa-pen"></i> Modifier</p>
