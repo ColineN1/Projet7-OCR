@@ -19,4 +19,4 @@ Groupomania
 * Installer l'environnement avec npm install (Node JS)
 * Lancer le système avec npm run serve
 
-###Application rélaisée par Coline NEEL 
+### Application rélaisée par Coline NEEL 
