@@ -23,4 +23,4 @@ Groupomania
 
 * Vous pouvez accéder au site via l'url http://localhost:8080/
 
-### Application rélaisée par Coline NEEL 
+### Application réalisé par Coline NEEL 
